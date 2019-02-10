@@ -1,0 +1,93 @@
+* 
+ * contains methods to manipulate binary trees by computing size, adding and removing elements, 
+ * and expressing the values stored in the tree as a string, using the methods of BSTUtilities. 
+ */
+public class MyTreeSet<E>  
+{
+	// instance variables
+	private TreeNode root;
+	private int size;
+	private TreeDisplay display;
+
+	/**
+	 * Constructor for MyTreeSet. Initializes an empty tree, sets up the display, and sets display delay to 25 milliseconds. 
+	 */
+	public MyTreeSet()
+	{
+		root = null;
+		size = 0;
+		display = new TreeDisplay();
+		//wait 1 millisecond when visiting a node
+		display.setDelay(25);
+	}
+
+	/**
+	 * Accessor method that returns the number of elements in the tree
+	 * @return the number of elements in the tree
+	 */
+	public int size()
+	{
+		return size;
+	}
+
+	/**
+	 * Determines whether or not a tree contains a given value
+	 * @param obj: the value to search the binary tree for
+	 * @return true if a node containing such a value is found; false otherwise
+	 */
+	public boolean contains(Object obj)
+	{
+		return BSTUtilities.contains(root, (Comparable) obj, display);
+	}
+
+	/**
+	 * Adds a given object to the binary tree
+	 * @param obj: the object to add to the binary tree
+	 * @return true if the object was successfully added to the tree; false if the tree already contained the value
+	 */
+	public boolean add(E obj)
+	{
+		// if the value is already contained within the tree, return false and do nothing
+		if (contains(obj)) return false;
+		root = BSTUtilities.insert(root, (Comparable) obj, display);
+		display.displayTree(root);
+		size++;
+		return true;
+	}
+
+	/**
+	 * Removes a given object from the binary tree
+	 * @param obj: the object to be removed from the tree
+	 * @return true if the object was succesfully removed from the tree;
+	 * false if it was not found in the tree
+	 */
+	public boolean remove(Object obj)
+	{
+		// if there is no such value in the tree, return false and do nothing
+		if (!contains(obj)) return false;
+		root = BSTUtilities.delete(root, (Comparable) obj, display);
+		display.displayTree(root);
+		size--;
+		return true;
+	}
+
+	/**
+	 * Converts the values in the tree into a String 
+	 */
+	public String toString()
+	{
+		return toString(root);
+	}
+
+	/**
+	 * Returns a string representation of the value stored in a particular node
+	 * @param t: a node of the tree
+	 * @return the value stored in node t
+	 */
+	private String toString(TreeNode t)
+	{
+		if (t == null)
+			return " ";
+		return toString(t.getLeft()) + t.getValue() + "," + toString(t.getRight());
+	}
+}

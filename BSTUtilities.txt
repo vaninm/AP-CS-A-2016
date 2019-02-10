@@ -1,0 +1,124 @@
+/* BSTUtilities contains the following methods for manipulating binary search trees by checking for, inserting, and deleting values:
+ * contains (TreeNode, Comparable, TreeDisplay)
+ * insert (TreeNode, Comparable, TreeDisplay)
+ * delete (TreeNode, Comparable, TreeDisplay)
+ * 
+ * @author: Vani Mohindra
+ * @version: 11/30/16
+ */
+import java.util.*;
+
+public abstract class BSTUtilities
+{
+	/**
+	 * Determines if the given tree contains the specified value and displays the search process
+	 * 
+	 * @param t: the tree to be searched
+	 * @param x: the value to be searched for in t
+	 * @param display: TreeDisplay object for displaying the search process
+	 * 
+	 * @return true if the tree contains the specified value; false otherwise
+	 */
+    public static boolean contains(TreeNode t, Comparable x, TreeDisplay display)
+    {
+    	// if t is null, it can't store any value
+        if (t==null) return false;
+        // visit the node
+        display.visit(t);
+        // x is equal to the value stored in t 
+        if (x.compareTo((Comparable) t.getValue())==0) return true;
+        // if x is less than the value stored in t, check the left subtree for a matching value
+        if (x.compareTo((Comparable) t.getValue()) < 0)
+        {
+        	return contains (t.getLeft(), x, display);
+        }
+        // if x is greater than the value stored in t, check the right subtree for a matching value
+        return contains (t.getRight(), x, display);
+    }
+    /**
+	 * Inserts the specified value into the given tree, following rules of order, and returns the new tree
+	 * 
+	 * @param t: the tree to add the value to 
+	 * @param x: the value to be added to the tree
+	 * @param display: TreeDisplay object for displaying the insertion process
+	 * 
+	 * @return the root of the modified tree or null if it does not exist
+     */
+    public static TreeNode insert(TreeNode t, Comparable x, TreeDisplay display)
+    {
+    	// if the tree is empty, create the tree
+        if (t==null) return new TreeNode(x);
+        // If x is less than the value stored in t, set the left child of t to the root of the tree that 
+        // will be created when you add x to the left subtree recursively.
+        // Once you hit a null node, the base case will take care of things and create the node.
+        if (x.compareTo((Comparable) t.getValue()) < 0)
+        {
+        	display.visit(t);
+        	t.setLeft(insert(t.getLeft(), x, display));
+        }
+        // proceed similarly if x is greater than the value stored in t
+        if (x.compareTo((Comparable) t.getValue()) > 0)
+        {
+        	display.visit(t);
+        	t.setRight(insert(t.getRight(), x, display));
+        }
+        return t;
+    }
+    /**
+	 * Helper method for delete: deletes the root node of the given tree and returns the tree
+	 * 
+	 * @param t: the tree whose root node is to be deleted
+	 * @param display: TreeDisplay object for displaying the deletion process
+	 * 
+	 * @return the root of the modified tree
+     */
+    private static TreeNode deleteNode(TreeNode t, TreeDisplay display)
+    { // Handle 3 cases 
+        TreeNode focusNode = t;
+        if (focusNode.getLeft() == null && focusNode.getRight() == null) // deleted node was a leaf
+        	return null;
+        if (focusNode.getLeft() == null) // deleted node has only one child
+            return focusNode.getRight();
+        else if (focusNode.getRight() == null)
+            return focusNode.getLeft();
+        else // has two children
+        {
+            Object value = TreeUtil.leftmost(focusNode.getRight()); // get the value of the leftmost node of the right subtree        
+            focusNode.setValue(value); // change the value to make replicate
+            focusNode.setRight(delete(focusNode.getRight(), (Comparable) value, display)); // now delete the leftmost node of the right subtree
+            // (the one that was moved)
+            return focusNode;					
+         }
+    }
+    /**
+ 	 * Deletes a node of specified value from a given tree if it exists and returns the modified tree
+ 	 * 
+ 	 *  @param t: the tree to be modified
+ 	 *  @param x: the value to be removed from tree t
+ 	 *  @param display: TreeDisplay object for displaying the deletion process
+ 	 *  
+ 	 *  @return the root of the modified tree
+     */
+    public static TreeNode delete(TreeNode t, Comparable x, TreeDisplay display)
+    {
+        if (contains(t,x,display))
+        {
+            TreeNode focusNode = t;
+            if (x.compareTo(focusNode.getValue()) > 0 )	// go right if greater in value
+            {
+            	display.visit(t);
+                focusNode.setRight(delete(focusNode.getRight(), x, display));
+            }
+            else if (x.compareTo(focusNode.getValue()) < 0)	// go left if lesser in value
+            {
+            	display.visit(t);
+                focusNode.setLeft(delete(focusNode.getLeft(), x , display));
+            }
+            else	// found the node so call delete
+            {
+            	return deleteNode(focusNode, display);	// once found call deleteNode
+            }
+        }       
+        return t;	// return tree with node deleted
+    }
+}
