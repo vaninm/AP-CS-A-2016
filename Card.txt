@@ -1,0 +1,100 @@
+public class Card
+{
+	private int rank;
+	private String suit;
+	private boolean isFaceUp;
+	
+	/**
+	 * @precondition 1 <= rank <= 13
+	 * @precondition suit = {"c", "h", "s", "d"}
+	 * creates an initially face-down Card object with specified rank and suit
+	 * @param rank of the card
+	 * @param suit of the card
+	 */
+	public Card (int rank, String suit)
+	{
+		this.rank = rank;
+		this.suit = suit;
+		isFaceUp = false;
+	}
+	
+	/**
+	 * Returns the card of the card as an integer where 1 represents an Ace
+	 * and 13 represents a King
+	 * @return rank of the card
+	 */
+	public int getRank ()
+	{
+		return rank;
+	}
+	
+	/**
+	 * Returns the card of the card as a 1-character string where each suit is 
+	 * represented by its first letter (i.e. Spades is denoted by "s")
+	 * @return the suit of the card
+	 */
+	public String getSuit ()
+	{
+		return suit;
+	}
+	
+	/**
+	 * Determines if the the card is red
+	 * @return true if the card is red; false otherwise
+	 */
+	public boolean isRed ()
+	{
+		return (suit.equals("d") || suit.equals("h"));
+	}
+	
+	/**
+	 * Determines if the card is face-up
+	 * @return true if the card is face-up; false otherwise
+	 */
+	public boolean isFaceUp ()
+	{
+		return isFaceUp;
+	}
+	
+	/**
+	 * Sets the card to be face-up
+	 */
+	public void turnUp ()
+	{
+		isFaceUp = true;
+	}
+	
+	/**
+	 * Sets the card to be face-down
+	 */
+	public void turnDown ()
+	{
+		isFaceUp = false;
+	}
+	
+	/**
+	 * Helper method for getFileName(); outputs the name of the file as is stored in the folder CARDS
+	 * @return the name of the card, as is stored in the folder CARDS
+	 */
+	private String getCardName ()
+	{
+		if (rank ==1) return "a" + suit;
+		if (rank <= 9) return rank + suit;
+		if (rank == 10) return "t" + suit;
+		if (rank == 11) return "j" + suit;
+		if (rank == 12) return "q" + suit;
+		return "k" + suit;
+	}
+	
+	/**
+	 * Finds and returns the name of the file that contains the image of the card
+	 * @return the name of the file that contains the image of the card
+	 */
+	public String getFileName ()
+	{
+		// if the card is face-down, the image of its back should be displayed
+		if (isFaceUp==false) return "/Users/vanimo/Desktop/Solitaire/cards//back.gif";
+		// otherwise, its front should show
+		return "/Users/vanimo/Desktop/Solitaire/cards//" + getCardName() + ".gif";
+	}
+}

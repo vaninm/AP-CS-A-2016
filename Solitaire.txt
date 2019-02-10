@@ -1,0 +1,425 @@
+import java.util.*;
+
+public class Solitaire
+{
+	// main method: starts a game of Solitaire
+	public static void main(String[] args)
+	{
+		new Solitaire();
+	}
+
+	private Stack<Card> stock;
+	private Stack<Card> waste;
+	private Stack<Card>[] foundations;
+	private Stack<Card>[] piles;
+	private SolitaireDisplay display;
+
+	/**
+	 * Constructor: creates a Solitaire game, setting up 
+	 * stock, waste, foundations, piles, and display
+	 */
+	public Solitaire()
+	{
+		// fill foundations with 4 empty stacks to hold cards
+		foundations = new Stack[4];
+		for (int i=0; i<4; i++)
+		{
+			foundations [i] = new Stack <Card> ();
+		}
+		// fill piles with 7 empty stacks to hold cards
+		piles = new Stack [7];
+		for (int i=0; i<7; i++)
+		{
+			piles[i] = new Stack <Card> ();
+		}
+		// initialize stock
+		stock = new Stack <Card> ();
+		// initialize waste
+		waste = new Stack <Card> ();		
+		// initialize display
+		display = new SolitaireDisplay(this);
+		// create a shuffled stock
+		createStock();
+		// deal the cards to the various piles, turning the top one
+		// of each pile face-up
+		deal();
+	}
+	
+	/**
+	 * Adds all 52 cards to the stock in random order
+	 */
+	public void createStock ()
+	{
+		// create an ArrayList deck that contains all 52 cards in order of rank
+		ArrayList <Card> deck = new ArrayList <Card> ();
+		for (int i=1; i<=13; i++)
+		{
+			deck.add(new Card(i,"h"));
+			deck.add(new Card(i,"c"));
+			deck.add(new Card(i,"s"));
+			deck.add(new Card(i,"d"));
+		}
+		// add cards from deck to the stock in random order until deck is empty
+		while (deck.size()!=0)
+		{
+			stock.push(deck.remove((int)(Math.random()*deck.size())));
+		}
+	}
+	
+	/**
+	 * @precondition the stock has already been correctly created
+	 * Deal the cards from stock to the various piles such that each of the seven
+	 * 	piles contains as many cards as its position (i.e. the seventh pile contains 
+	 * 	seven cards) and the first card of each pile is face-up. 
+	 */
+	public void deal ()
+	{
+		for (int i=0; i<7; i++)
+		{
+			for (int j=0; j<i+1; j++)
+			{
+				piles[i].add(stock.pop());
+			}
+			// flips the top card of each piles so that it is face-up
+			piles[i].peek().turnUp();
+		}
+	}
+	
+	/**
+	 * Moves three cards from the stock to the waste, turning them so that 
+	 * they are face-up. If there are less than three cards in the stock, 
+	 * move all of them to the waste, still making sure that they are face-up.
+	 */
+	public void dealThreeCards ()
+	{	
+		// local variable: keeps track of the number of cards moved to waste
+		int counter = 0;
+		// stop adding cards if the stock is empty or if three cards have been added
+		while (!stock.isEmpty() && counter < 3)
+		{
+			// flip the top card of stock so that it is face-up
+			stock.peek().turnUp();
+			// move the card to the waste
+			waste.push(stock.pop());
+			counter ++;
+		}
+	}
+
+	/**
+	 * Move all cards from waste back to stock and flip them 
+	 * so that they are face-down
+	 */
+	public void resetStock ()
+	{
+		// keep moving cards from the waste to stock until waste is empty
+		while (!waste.isEmpty())
+		{
+			Card temp = waste.pop();
+			// turn the top card of waste so that it is face-down
+			temp.turnDown();
+			// move the card to the stock
+			stock.push(temp);
+		}
+	}
+
+	/**
+	 * Accesses and returns the top card of the stock, if present. 
+	 * @return the card at the top of the stock or null if the stock is empty
+	 */
+	public Card getStockCard()
+	{
+		if (stock.isEmpty()) return null;
+		return stock.peek();
+	}
+
+	/**
+	 * Accesses and returns the top card of the waste, if present
+	 * @return the card at the top of the stock or null if the stock is empty
+	 */
+	public Card getWasteCard()
+	{
+		if (waste.isEmpty()) return null;
+		return waste.peek();
+	}
+
+	
+	/**
+	 * @precondition 0 <= index <4
+	 * Returns the top card card of the specified foundation pile, if present.
+	 * @param the index of the foundation pile
+	 * @return the top card of the specified foundation pile or null
+	 * if that pile is empty
+	 */
+	public Card getFoundationCard(int index)
+	{
+		if (foundations[index].isEmpty()) return null;
+		return foundations[index].peek();
+	}
+
+	/**
+	 * @precondition 0 <= index < 7
+	 * Accesses and returns the specified pile
+	 * @param the index of the pile
+	 * @return the specified pile
+	 */
+	public Stack<Card> getPile(int index)
+	{
+		return piles[index];
+	}
+
+	/**
+	 * If the waste or a pile is selected when the stock is clicked, do nothing. 
+	 * If there are no cards in the stock, reset the stock by moving all the cards
+	 * from the waste to the stock. Otherwise, deal up to three cards.
+	 * 
+	 */
+	public void stockClicked()
+	{
+		if (display.isWasteSelected() || display.isPileSelected()) return;
+		if (!stock.isEmpty()) dealThreeCards();
+		else 
+			{
+			resetStock();
+			}
+		System.out.println("stock clicked");
+	}
+
+	/**
+	 * If the nothing else is selected when the waste is clicked, select the waste. 
+	 * Otherwise, if the waste is already selected, un-select it. 
+	 */
+	
+	public void wasteClicked()
+	{
+		if (!waste.isEmpty() && !display.isWasteSelected() && !display.isPileSelected())
+		{
+			display.selectWaste();
+		}
+		else if (display.isWasteSelected())
+		{
+			display.unselect();
+		}
+		System.out.println("waste clicked");
+	}
+
+	/**
+	 * @precondition 0 <= index < 4
+	 * If the nothing is selected when the foundation pile is clicked, move as 
+	 * many cards to the foundations as possible. If either the waste or a
+	 * pile is selected, move the selected card to the foundation pile if possible.
+	 * Prints to console that the specified foundation was clicked.
+	 */
+	public void foundationClicked(int index)
+	{
+		// if nothing is selected, move all possible cards to the foundations
+		if (!display.isWasteSelected() && !display.isPileSelected())
+		{
+			shortcutToFoundations();
+			showWin();
+		}
+		// if the waste is selected, add the card to the selected foundation pile if possible
+		if (display.isWasteSelected())
+		{
+			if (canAddToFoundation(waste.peek(),index))
+			{
+				foundations[index].push(waste.pop());
+				display.unselect();
+				showWin();
+			}
+		}
+		// if a pile is selected, add the card to the selected possible foundation pile if possible
+		if (display.isPileSelected())
+		{
+			if (canAddToFoundation(piles[display.selectedPile()].peek(),index))
+			{
+				foundations[index].push(piles[display.selectedPile()].pop());
+				display.unselect();
+				showWin();
+			}
+		}
+		System.out.println("foundation #" + index + " clicked");
+	}
+
+	/**
+	 * @precondition 0 <= index < 7
+	 * If a pile is already selected, try to add all of the face-up cards of that pile
+	 * to the top of the clicked pile unless the selected pile is the same
+	 * as the clicked pile, in which case you un-select that pile.
+	 *  Otherwise, select the clicked pile. 
+	 * @param the index of the specified pile to be added to
+	 */
+	public void pileClicked(int index)
+	{
+		if (display.isPileSelected())
+		{	
+			if (display.selectedPile() == index)
+			{
+				display.unselect();
+			} else {
+				// if it a valid move then move the cards from selected pile to the clicked pile
+				Stack<Card> cards = removeFaceUpCards(display.selectedPile());
+				if (canAddToPile(cards.peek(), index))
+				{
+					addToPile(cards, index);
+					display.unselect();
+				}
+				else
+				{
+					// if not a valid move, push the cards back into the selected pile.
+					addToPile(cards,display.selectedPile());
+				}		
+			}
+		}
+		// if nothing is selected, and the top card of the clicked pile is face-down, turn 
+		// it face-up. Otherwise, select the clicked pile. 
+		else if (!display.isPileSelected() && !display.isWasteSelected())
+		{
+			if (piles[index].isEmpty()) return; /*THIS IS NEW */
+			else if (!piles[index].peek().isFaceUp())
+				piles[index].peek().turnUp();
+			else				
+				display.selectPile(index);
+		}
+		// if the waste is selected, try to add the top card of waste to the clicked pile
+		// and un-select both piles
+		else if (display.isWasteSelected())
+		{
+			if (canAddToPile (waste.peek(), index))
+			{
+				piles[index].push(waste.pop());
+				display.unselect();
+			}
+		}
+		System.out.println("pile #" + index + " clicked");
+	}
+	
+	/**
+	 * @precondition 0 <= index < 7
+	 * Determines whether or not a particular card can be added to the top of a given pile
+	 * @param the card
+	 * @param the index of the pile 
+	 * @return true if the given card can be legally moved to the top of the pile at index;
+	 * false otherwise
+	 */
+	public boolean canAddToPile (Card card, int index)
+	{
+		// if the pile is empty, the only  card that can be added is a King
+		if (piles[index].isEmpty()) return (card.getRank()==13);
+		// if the top of the pile is face-down, you cannot add the card
+		if (!piles[index].peek().isFaceUp()) return false;
+		Card top = piles[index].peek();
+		return (top.getRank()-1==card.getRank()
+				&& top.isRed()!=card.isRed());		
+	}
+	
+	/**
+	 * @precondition 0 <= index <7
+	 * Removes all the face-up cards on the top of a given pile and returns
+	 * a stack containing those cards
+	 * @param index
+	 * @return a stack containing the face-up cards
+	 */
+	private Stack<Card> removeFaceUpCards (int index)
+	{
+		Stack <Card> removed = new Stack <Card> ();
+		// keep removing cards until either the pile is empty or a 
+		// face-down card is reached
+		while (!piles[index].isEmpty() && piles[index].peek().isFaceUp())
+		{
+			removed.push(piles[index].pop());
+		}
+		return removed;
+	}
+	
+	/** 
+	 * @precondition 0 <= index < 7
+	 * Removes elements from cards and adds them to the given pile.
+	 * @param the stack of cards to be added to the pile
+	 * @param the index of the pile
+	 */
+	private void addToPile(Stack<Card> cards, int index)
+	{
+		// keep adding cards from the given stack to the pile until 
+		// the stack is empty
+		while (!cards.isEmpty())
+		{
+			piles[index].push(cards.pop());
+		}
+	}
+	  
+	/** 
+	 * @precondition 0 <= index < 4
+	 * Determines whether or not a given card can be added to the top of a given foundation pile
+	 * @param the card to be added
+	 * @param index of the foundation pile
+	 * @return true if the given card can be legally moved to the top of the given foundation;
+	 * false otherwise
+	 */
+	private boolean canAddToFoundation(Card card, int index)
+	{
+		if (foundations[index].isEmpty())
+		{
+			// if the foundations pile is empty, only an Ace can be added
+			return (card.getRank()==1);
+		}
+		else 
+		{
+			// otherwise, the card must have the same suit and a rank one greater
+			// than the card at the top of the foundation pile
+			Card top = foundations[index].peek();
+			return (card.getSuit().equals(top.getSuit())
+					&& card.getRank()==top.getRank()+1);
+		}
+	}
+	
+	/**
+	 * Moves all possible cards to the foundation piles. 
+	 */
+	public void shortcutToFoundations ()
+	{
+		boolean movedCardToFoundation = true;	
+		// keep moving cards until you are out of moves
+		while (movedCardToFoundation)
+		{
+			movedCardToFoundation = false;
+			// loop over all the foundations
+			for (int i=0; i<4; i++)
+			{
+				// loop over all the piles and the waste to move cards to foundation.
+				for (int j=0; j<7; j++)
+				{
+					while (!piles[j].isEmpty() && canAddToFoundation(piles[j].peek(),i))
+					{
+						foundations[i].push(piles[j].pop());
+						movedCardToFoundation = true;
+					}
+				}
+				if (!waste.isEmpty() && canAddToFoundation(waste.peek(), i))
+				{
+					foundations[i].push(waste.pop());
+					movedCardToFoundation = true;
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Determines whether or not the user has one the game of Solitaire
+	 * when prompted
+	 * @return true if the user has won; false otherwise
+	 */
+	public boolean hasWon()
+	{
+		int numCards = 0;
+		for (int i=0; i<4; i++)
+		{
+			numCards += foundations[i].size();
+		}
+		return (numCards == 52);
+	}
+	
+	public void showWin ()
+	{
+		if (hasWon()) System.out.println("YOU WIN!");
+	}
+}
